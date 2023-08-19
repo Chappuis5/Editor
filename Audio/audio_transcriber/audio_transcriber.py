@@ -61,8 +61,7 @@ class Audio:
         Transcribe the audio file using the pvleopard library.
         """
         leopard = pvleopard.create(access_key="JHRxxr3akK4RilsSIOyULG8IMwwmbMQX6fLcTeB2yXgXSsDWcexbdA==",
-                                   model_path="/Users/evanflament/Documents/Git-Projects/"
-                                              "AutoEditor/AutoEditor/leopard_params_fr.pv")
+                                   model_path="leopard_params_fr.pv")
 
         # Process the audio file
         transcript, words = leopard.process_file(self.file_path)

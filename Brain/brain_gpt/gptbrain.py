@@ -1,4 +1,4 @@
-from AutoEditor.audio_builder.audio_transcriber import Audio
+from Audio.audio_transcriber.audio_transcriber import Audio
 import openai
 import nltk
 
