@@ -10,6 +10,7 @@ from pydub import AudioSegment
 from moviepy.editor import concatenate_videoclips, VideoFileClip, AudioFileClip, CompositeAudioClip
 from PIL import Image
 from math import ceil
+
 class VideoEditor:
     def __init__(self):
         self.tmp_dir = '/tmp/video_selection'
@@ -191,6 +192,7 @@ class VideoEditor:
         :return: Path to the final video with audio.
         :rtype: str
         """
+        final_video_path = None
         try:
             video_path = self.trim_and_concatenate(liked_videos_by_part, audio_path)
             final_video_path = self.add_audio(audio_path, video_path)
