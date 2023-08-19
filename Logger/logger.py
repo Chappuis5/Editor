@@ -1,7 +1,15 @@
 import logging
 
 class Logger:
-    def __init__(self, log_file_name, log_level=logging.INFO):
+    def __init__(self, log_file_name: str, log_level: int = logging.INFO):
+        """
+        Initialize the logger with file and console handlers.
+        
+        :param log_file_name: Name of the file to write logs to.
+        :type log_file_name: str
+        :param log_level: Logging level, defaults to logging.INFO.
+        :type log_level: int
+        """
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
 
@@ -22,7 +30,15 @@ class Logger:
         self.logger.addHandler(handler)
         self.logger.addHandler(console_handler)
 
-    def write(self, message, level):
+    def write(self, message: str, level: str):
+        """
+        Write a log message at the specified log level.
+        
+        :param message: The message to log.
+        :type message: str
+        :param level: The logging level ('debug', 'info', 'warning', 'error', 'critical').
+        :type level: str
+        """
         if level.lower() == 'debug':
             self.logger.debug(message)
         elif level.lower() == 'info':

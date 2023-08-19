@@ -12,8 +12,11 @@ setup(
         'openai',
         'nltk',
         'pytest',
-
         'python-dotenv',
+        'numpy',
+        'moviepy',
+        'pillow',
+        'requests'
     ],
     extras_require={
         'dev': [
