@@ -3,8 +3,9 @@ from Video.video_editor import VideoEditor
 import os
 from pytube import YouTube
 import requests
-from moviepy.editor import VideoFileClip
-
+from moviepy.editor import VideoFileClip, ImageSequenceClip
+import numpy as np
+from PIL import Image
 
 # Définir les chemins des vidéos et de l'audio à télécharger pour les tests
 VIDEO_URLS = [
@@ -30,6 +31,11 @@ def download_audio_with_requests(url, output_path):
         raise Exception(f"Failed to download audio from {url}")
 
 
+def resize_clip_generator(clip, size):
+    for frame in clip.iter_frames():
+        yield np.array(Image.fromarray(frame).resize(size, Image.LANCZOS))
+
+
 @pytest.fixture(scope="module")
 def downloaded_videos():
     video_paths = []
@@ -41,7 +47,13 @@ def downloaded_videos():
         # Downsample the video for testing
         with VideoFileClip(output_path) as video:
             # Resize the video to half its original dimensions using the resize_clip function from VideoEditor
-            resized_video = editor.resize_clip(video, (int(video.size[0] * 0.5), int(video.size[1] * 0.5)))
+            try:
+                resized_frames = resize_clip_generator(video, (int(video.size[0] * 0.5), int(video.size[1] * 0.5)))
+                resized_video = ImageSequenceClip(list(resized_frames), fps=video.fps)
+            except MemoryError:
+                raise Exception(
+                    "Video is too large to process. Consider using a smaller video or increasing system memory.")
+
             resized_output_path = os.path.join(editor.tmp_dir, f"{sanitized_name}_resized.mp4")
 
             # Write the video with reduced bitrate and no audio
