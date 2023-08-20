@@ -60,6 +60,7 @@ def test_add_audio(downloaded_audio, downloaded_videos):
     video_with_audio_path = editor.add_audio(downloaded_audio, downloaded_videos[0])
     assert os.path.exists(video_with_audio_path)
 
+
 def test_process_videos(downloaded_audio, downloaded_videos):
     liked_videos_by_part = {
         "part1": [

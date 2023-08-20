@@ -10,6 +10,8 @@ from pydub import AudioSegment
 from moviepy.editor import concatenate_videoclips, VideoFileClip, AudioFileClip, CompositeAudioClip
 from PIL import Image
 from math import ceil
+from pytube import YouTube
+
 
 class VideoEditor:
     def __init__(self):
@@ -49,21 +51,41 @@ class VideoEditor:
         frames = [np.array(Image.fromarray(frame).resize(size, Image.LANCZOS)) for frame in clip.iter_frames()]
         return ImageSequenceClip(frames, fps=clip.fps)
 
+
     def download_video(self, url, output_path):
         """
-        Download video from the given URL.
+        Download video from the given URL. If the video is from YouTube, use pytube.
 
         :param url: URL of the video to download.
         :type url: str
         :param output_path: Path to save the downloaded video.
         :type output_path: str
         """
-        response = requests.get(url, stream=True)
-        if response.status_code == 200:
-            with open(output_path, 'wb') as file:
-                file.write(response.content)
+        if "youtube.com" in url or "youtu.be" in url:
+            try:
+                yt = YouTube(url)
+                # Get the highest resolution stream (assuming it's progressive)
+                video_stream = yt.streams.filter(progressive=True, file_extension="mp4").order_by(
+                    "resolution").desc().first()
+                if not video_stream:
+                    raise Exception("No suitable stream found for this YouTube video.")
+
+                # Split output path into directory and filename
+                output_dir, filename = os.path.split(output_path)
+                downloaded_path = video_stream.download(output_dir)
+
+                # Rename the downloaded file to the desired filename
+                os.rename(downloaded_path, output_path)
+            except Exception as e:
+                print(f"Failed to download video from YouTube: {e}")
         else:
-            print(f"Failed to download video from {url}")
+            response = requests.get(url, stream=True)
+            if response.status_code == 200:
+                with open(output_path, 'wb') as file:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        file.write(chunk)
+            else:
+                print(f"Failed to download video from {url}")
 
     def trim_video(self, video_path, start_time, end_time, output_path):
         """
@@ -129,6 +151,8 @@ class VideoEditor:
             for video in videos:
                 output_path = os.path.join(self.tmp_dir, f"{uuid.uuid4()}.mp4")
                 self.download_video(video['url'], output_path)
+                if not os.path.exists(output_path):
+                    raise ValueError(f"Video file {output_path} does not exist!")
                 video_clip = VideoFileClip(output_path)
                 actual_video_duration = video_clip.duration
                 print(f"Actual video duration: {actual_video_duration}")

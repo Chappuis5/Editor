@@ -1,15 +1,21 @@
 import os
 import pytest
-from pydub import AudioSegment
 from Audio.audio_transcriber.audio_transcriber import Audio
+
 
 @pytest.fixture
 def audio_path():
-    return "D:\\programmation\\Editor\\tests\\audio.mp3"
+    # Cela remontera de trois niveaux par rapport au dossier contenant le script de test actuel
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    return os.path.join(base_dir, "audio.mp3")
+
 
 @pytest.fixture
 def audio_m4a_path():
-    return "D:\\programmation\\Editor\\tests\\audio.m4a"
+    # Cela remontera de trois niveaux par rapport au dossier contenant le script de test actuel
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    return os.path.join(base_dir, "audio.m4a")
+
 
 @pytest.fixture
 def audio_obj(audio_path):
@@ -25,6 +31,7 @@ def test_convert_m4a_to_mp3(audio_m4a_path):
     audio_obj.convert_m4a_to_mp3()
     assert audio_obj.file_path.endswith('.mp3')
     assert os.path.exists(audio_obj.file_path)
+
 
 @pytest.mark.skip("This test requires the pvleopard library and an access key.")
 def test_transcribe(audio_obj):
