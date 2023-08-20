@@ -31,7 +31,8 @@ def download_audio_with_requests(url, output_path):
 def downloaded_videos():
     video_paths = []
     for url in VIDEO_URLS:
-        output_path = os.path.join(editor.tmp_dir, f"{url.split('/')[-1]}.mp4")
+        sanitized_name = editor.sanitize_filename(url.split('/')[-1])
+        output_path = os.path.join(editor.tmp_dir, f"{sanitized_name}.mp4")
         download_video_with_pytube(url, output_path)
         video_paths.append(output_path)
     return video_paths
@@ -80,9 +81,11 @@ def test_process_videos(downloaded_audio, downloaded_videos):
 def cleanup():
     yield
     for url in VIDEO_URLS:
-        video_path = os.path.join(editor.tmp_dir, f"{url.split('/')[-1]}.mp4")
+        sanitized_name = editor.sanitize_filename(url.split('/')[-1])
+        video_path = os.path.join(editor.tmp_dir, f"{sanitized_name}.mp4")
         if os.path.exists(video_path):
             os.remove(video_path)
     audio_path = os.path.join(editor.tmp_dir, "audio_test.mp3")
     if os.path.exists(audio_path):
         os.remove(audio_path)
+
