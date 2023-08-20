@@ -103,6 +103,8 @@ class VideoEditor:
         video = VideoFileClip(video_path)
         trimmed = video.subclip(start_time, end_time)
         trimmed.write_videofile(output_path, codec='libx264')
+        video.close()
+        trimmed.close()
 
     def concatenate_videos(self, videos, output_path):
         """
@@ -163,6 +165,8 @@ class VideoEditor:
                 trimmed_video_clip = video_clip.subclip(start_time, end_time)
                 trimmed_output_path = os.path.join(self.tmp_dir, f"{uuid.uuid4()}_trimmed.mp4")
                 trimmed_video_clip.write_videofile(trimmed_output_path, codec='libx264')
+                video_clip.close()
+                trimmed_video_clip.close()
                 total_video_duration += end_time - start_time
                 part_videos_paths.append(trimmed_output_path)
             concatenated_output_path = os.path.join(self.tmp_dir, f"{uuid.uuid4()}_concatenated.mp4")
@@ -203,6 +207,9 @@ class VideoEditor:
         final_clip = video_clip.set_audio(audio)
         output_path = os.path.join(self.final_dir, f'{uuid.uuid4()}_final_video_with_audio.mov')
         final_clip.write_videofile(output_path, codec='libx264', audio_codec='aac')
+        audio.close()
+        video_clip.close()
+        final_clip.close()
         return output_path
 
     def process_videos(self, liked_videos_by_part, audio_path):
