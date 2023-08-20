@@ -35,7 +35,6 @@ def resize_clip_generator(clip, size):
     for frame in clip.iter_frames():
         yield np.array(Image.fromarray(frame).resize(size, Image.LANCZOS))
 
-
 @pytest.fixture(scope="module")
 def downloaded_videos():
     video_paths = []
@@ -45,14 +44,10 @@ def downloaded_videos():
         download_video_with_pytube(url, output_path)
 
         # Downsample the video for testing
-        with VideoFileClip(output_path) as video:
-            # Resize the video to half its original dimensions using the resize_clip function from VideoEditor
-            try:
-                resized_frames = resize_clip_generator(video, (int(video.size[0] * 0.5), int(video.size[1] * 0.5)))
-                resized_video = ImageSequenceClip(list(resized_frames), fps=video.fps)
-            except MemoryError:
-                raise Exception(
-                    "Video is too large to process. Consider using a smaller video or increasing system memory.")
+        with VideoFileClip(output_path).subclip(0, 10) as video:  # Truncate video to 10 seconds
+            # Resize the video to a fixed resolution (480p) using the resize_clip function from VideoEditor
+            resized_frames = resize_clip_generator(video, (854, 480))
+            resized_video = ImageSequenceClip(list(resized_frames), fps=video.fps)
 
             resized_output_path = os.path.join(editor.tmp_dir, f"{sanitized_name}_resized.mp4")
 
@@ -75,7 +70,7 @@ def test_sanitize_filename():
 
 def test_trim_video(downloaded_videos):
     trimmed_path = os.path.join(editor.tmp_dir, "trimmed_video.mp4")
-    editor.trim_video(downloaded_videos[0], 10, 20, trimmed_path)
+    editor.trim_video(downloaded_videos[0], 1, 4, trimmed_path)
     assert os.path.exists(trimmed_path)
 
 def test_concatenate_videos(downloaded_videos):

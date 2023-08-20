@@ -11,11 +11,16 @@ from moviepy.editor import concatenate_videoclips, VideoFileClip, AudioFileClip,
 from PIL import Image
 from math import ceil
 from pytube import YouTube
+import tempfile
+import stat
+import errno
+import time
+import platform
 
 
 class VideoEditor:
     def __init__(self):
-        self.tmp_dir = '/tmp/video_selection'
+        self.tmp_dir = tempfile.mkdtemp(prefix="video_selection")
         self.final_dir = 'final_video'
         os.makedirs(self.tmp_dir, exist_ok=True)
         os.makedirs(self.final_dir, exist_ok=True)
@@ -100,11 +105,9 @@ class VideoEditor:
         :param output_path: Path to save the trimmed video.
         :type output_path: str
         """
-        video = VideoFileClip(video_path)
-        trimmed = video.subclip(start_time, end_time)
-        trimmed.write_videofile(output_path, codec='libx264')
-        video.close()
-        trimmed.close()
+        with VideoFileClip(video_path) as video:
+            trimmed = video.subclip(start_time, end_time)
+            trimmed.write_videofile(output_path, codec='libx264')
 
     def concatenate_videos(self, videos, output_path):
         """
@@ -212,6 +215,27 @@ class VideoEditor:
         final_clip.close()
         return output_path
 
+    @staticmethod
+    def handle_remove_readonly(func, path, exc_info):
+        excvalue = exc_info[1]
+        if func in (os.rmdir, os.remove) and excvalue.errno == errno.EACCES:
+            os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)  # 0777
+            func(path)
+        else:
+            raise
+
+    def robust_rmtree(self, path, max_retries=5, retry_delay=1):
+        for _ in range(max_retries):
+            try:
+                shutil.rmtree(path, onerror=self.handle_remove_readonly)
+                return
+            except PermissionError:
+                time.sleep(retry_delay)
+        if platform.system() == "Windows":
+            print(f"Warning: Failed to delete {path} after {max_retries} attempts. Continuing on Windows.")
+        else:
+            raise PermissionError(f"Failed to delete {path} after {max_retries} attempts.")
+
     def process_videos(self, liked_videos_by_part, audio_path):
         """
         Process and generate final video with audio.
@@ -230,6 +254,6 @@ class VideoEditor:
         except Exception as e:
             print(f"Error occurred while processing videos: {e}")
         finally:
-            shutil.rmtree(self.tmp_dir)
+            self.robust_rmtree(self.tmp_dir)
             print("Temporary directory deleted.")
         return final_video_path
