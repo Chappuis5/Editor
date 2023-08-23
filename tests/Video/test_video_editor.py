@@ -3,6 +3,9 @@ from Video.video_editor import VideoEditor
 import os
 from pytube import YouTube
 import requests
+from moviepy.editor import VideoFileClip, ImageSequenceClip
+import numpy as np
+from PIL import Image
 
 # Définir les chemins des vidéos et de l'audio à télécharger pour les tests
 VIDEO_URLS = [
@@ -27,6 +30,11 @@ def download_audio_with_requests(url, output_path):
     else:
         raise Exception(f"Failed to download audio from {url}")
 
+
+def resize_clip_generator(clip, size):
+    for frame in clip.iter_frames():
+        yield np.array(Image.fromarray(frame).resize(size, Image.LANCZOS))
+
 @pytest.fixture(scope="module")
 def downloaded_videos():
     video_paths = []
@@ -34,8 +42,21 @@ def downloaded_videos():
         sanitized_name = editor.sanitize_filename(url.split('/')[-1])
         output_path = os.path.join(editor.tmp_dir, f"{sanitized_name}.mp4")
         download_video_with_pytube(url, output_path)
-        video_paths.append(output_path)
+
+        # Downsample the video for testing
+        with VideoFileClip(output_path).subclip(0, 10) as video:  # Truncate video to 10 seconds
+            # Resize the video to a fixed resolution (480p) using the resize_clip function from VideoEditor
+            resized_frames = resize_clip_generator(video, (854, 480))
+            resized_video = ImageSequenceClip(list(resized_frames), fps=video.fps)
+
+            resized_output_path = os.path.join(editor.tmp_dir, f"{sanitized_name}_resized.mp4")
+
+            # Write the video with reduced bitrate and no audio
+            resized_video.write_videofile(resized_output_path, codec='libx264', bitrate="100k", audio=False)
+
+        video_paths.append(resized_output_path)
     return video_paths
+
 
 @pytest.fixture(scope="module")
 def downloaded_audio():
@@ -49,7 +70,7 @@ def test_sanitize_filename():
 
 def test_trim_video(downloaded_videos):
     trimmed_path = os.path.join(editor.tmp_dir, "trimmed_video.mp4")
-    editor.trim_video(downloaded_videos[0], 10, 20, trimmed_path)
+    editor.trim_video(downloaded_videos[0], 1, 4, trimmed_path)
     assert os.path.exists(trimmed_path)
 
 def test_concatenate_videos(downloaded_videos):
@@ -83,9 +104,15 @@ def cleanup():
     for url in VIDEO_URLS:
         sanitized_name = editor.sanitize_filename(url.split('/')[-1])
         video_path = os.path.join(editor.tmp_dir, f"{sanitized_name}.mp4")
+        resized_video_path = os.path.join(editor.tmp_dir, f"{sanitized_name}_resized.mp4")
+
         if os.path.exists(video_path):
             os.remove(video_path)
+        if os.path.exists(resized_video_path):
+            os.remove(resized_video_path)
+
     audio_path = os.path.join(editor.tmp_dir, "audio_test.mp3")
     if os.path.exists(audio_path):
         os.remove(audio_path)
+
 
