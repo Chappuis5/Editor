@@ -45,26 +45,24 @@ def generate_keywords_gpt(part: str) -> list:
     :return: A list of keywords.
     :rtype: list
     """
-    sentences = nltk.sent_tokenize(part)
 
-    keywords = []
-    for sentence in sentences:
-        if len(sentence.split()) <= 4096:  # The sentence is within GPT-4's token limit
-            prompt = f"Résumez le texte suivant en un ensemble de mots-clés: {sentence}"
-            response = openai.Completion.create(engine="text-davinci-003", prompt=prompt, temperature=0.5,
-                                                max_tokens=200)
+    # Messages structure
+    messages = [
+        {"role": "system", "content": "You are an expert video editor"},
+        {"role": "user", "content": f"Summarize this text: '{part}' into 5 relevant keywords for "
+                                    f"video scraping, i.e., not too specific. Never any complicated words, "
+                                    f"or compound words. It's imperative that the word is on-topic, "
+                                    f"but absolutely never too detailed or too scientific/uncommon, "
+                                    f"think that a search browser will use it later for scraping... Only provide the words, "
+                                    f"and separate them by commas."}
+    ]
 
-            # We assume that the GPT-4 response text contains the keywords separated by commas
-            sentence_keywords = response.choices[0].text.strip().split(',')
-            for keyword in sentence_keywords[:2]:  # Get the first two keywords
-                keywords.append(keyword)
-                if len(keywords) == 3:  # We have reached the limit of 3 keywords
-                    break
+    # Ask gpt-4 using the chat endpoint
+    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=300)
 
-        if len(keywords) == 3:
-            break
+    keywords = [k.strip() for k in response.choices[0].message['content'].split(',')]
 
-    return keywords
+    return keywords[:5]
 
 
 def Helper(options: dict, logger, open_ai_key: str) -> list:
