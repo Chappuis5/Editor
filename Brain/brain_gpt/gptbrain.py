@@ -49,20 +49,22 @@ def generate_keywords_gpt(part: str) -> list:
     # Messages structure
     messages = [
         {"role": "system", "content": "You are an expert video editor"},
-        {"role": "user", "content": f"Summarize this text: '{part}' into 5 relevant keywords for "
+        {"role": "user", "content": f"Summarize this text: '{part}' into 10 relevant keywords for "
                                     f"video scraping, i.e., not too specific. Never any complicated words, "
                                     f"or compound words. It's imperative that the word is on-topic, "
-                                    f"but absolutely never too detailed or too scientific/uncommon, "
-                                    f"think that a search browser will use it later for scraping... Only provide the words, "
+                                    f"but absolutely never too scientific/too specific/proper noun..."
+                                    f"E.G. If the text talks about ABC NEWS, "
+                                    f"just output 'News', or 'TV', nothing too specific. "
+                                    f"Only provide the words, in English, "
                                     f"and separate them by commas."}
     ]
 
     # Ask gpt-4 using the chat endpoint
-    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=300)
+    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, max_tokens=350)
 
     keywords = [k.strip() for k in response.choices[0].message['content'].split(',')]
 
-    return keywords[:5]
+    return keywords[:10]
 
 
 def Helper(options: dict, logger, open_ai_key: str) -> list:
