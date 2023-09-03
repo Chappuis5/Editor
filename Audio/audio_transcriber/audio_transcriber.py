@@ -1,3 +1,4 @@
+import os
 import pvleopard
 from pydub import AudioSegment
 
@@ -60,8 +61,11 @@ class Audio:
         """
         Transcribe the audio file using the pvleopard library.
         """
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(current_dir, "leopard_params_fr.pv")
+
         leopard = pvleopard.create(access_key="JHRxxr3akK4RilsSIOyULG8IMwwmbMQX6fLcTeB2yXgXSsDWcexbdA==",
-                                   model_path="leopard_params_fr.pv")
+                                   model_path=model_path)
 
         # Process the audio file
         transcript, words = leopard.process_file(self.file_path)
@@ -86,3 +90,4 @@ class Audio:
         :rtype: list
         """
         return self.transcriptions
+
