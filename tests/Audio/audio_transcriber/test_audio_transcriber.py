@@ -50,7 +50,7 @@ def test_reduce_noise_audio():
     audio.reduce_noise_audio(0.5)
 
     # Vérifiez que le fichier "_denoised" a été créé
-    denoised_file_path = audio.temp_file.name.rsplit('.', 1)[0] + "_denoised.mp3"
+    denoised_file_path = audio.file_path.rsplit('.', 1)[0] + "_denoised.mp3"
     audio.assertTrue(os.path.exists(denoised_file_path))
 
     # Supprimer le fichier débruité
