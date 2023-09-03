@@ -17,7 +17,9 @@ setup(
         'numpy',
         'moviepy',
         'pillow',
-        'requests'
+        'requests',
+        'noisereduce',
+        'soundfile'
     ],
     extras_require={
         'dev': [

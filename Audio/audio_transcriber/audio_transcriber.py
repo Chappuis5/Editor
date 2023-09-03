@@ -1,6 +1,8 @@
 import os
 import pvleopard
 from pydub import AudioSegment
+import noisereduce as nr
+import soundfile as sf
 
 class Audio:
     
@@ -56,6 +58,25 @@ class Audio:
 
         # Update the file path to the converted mp3 file
         self.file_path = mp3_file_path
+    
+    def reduce_noise_audio(self, prop_decrease:float):
+        """
+        Reduce noise from an audio file.
+        prop_decrease est un paramètre de type float allant de 0.0 à 1.0
+        """
+        # Lecture du fichier audio
+        data, fs = sf.read(self.file_path)
+
+        # Réduire le bruit
+        y_denoised = nr.reduce_noise(
+            y=data, 
+            sr=fs,
+            prop_decrease=prop_decrease
+        )
+
+        # Sauvegarder l'audio débruité
+        sf.write(self.file_path.rsplit('.', 1)[0]+"_denoised.mp3", y_denoised, fs)
+
 
     def transcribe(self):
         """
