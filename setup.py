@@ -17,7 +17,8 @@ setup(
         'numpy',
         'moviepy',
         'pillow',
-        'requests'
+        'requests',
+        'opencv-python'
     ],
     extras_require={
         'dev': [
@@ -25,7 +26,7 @@ setup(
         ],
     },
     package_data={
-        'Editor': ['Audio/audio_transcriber/leopard_params_fr.pv'],
+        'Editor': ['Audio/audio_transcriber/leopard_params_fr.pv', 'Audio/audio_transcriber/fonts/*'],
     },
 )
 
