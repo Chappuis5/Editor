@@ -44,14 +44,6 @@ def test_transcribe(audio_obj):
         assert 'confidence' in transcription
         assert 'pause_after' in transcription
 
-def test_reduce_noise_audio():
-    # Testez avec un paramètre de réduction de bruit
-    audio = Audio(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "audio.mp3"))
-    audio.reduce_noise_audio(0.5)
-
-    # Vérifiez que le fichier "_denoised" a été créé
-    denoised_file_path = audio.file_path.rsplit('.', 1)[0] + "_denoised.mp3"
-    audio.assertTrue(os.path.exists(denoised_file_path))
-
-    # Supprimer le fichier débruité
-    os.unlink(denoised_file_path)
+def test_reduce_noise_audio(audio_obj):
+    audio_obj.reduce_noise_audio(0.5)
+    assert os.path.exists(audio_obj.file_path.rsplit('.', 1)[0]+"_denoised.mp3")
